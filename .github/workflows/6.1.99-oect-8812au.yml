@@ -28,8 +28,16 @@ jobs:
     - name: Extract Kernel Headers
       run: tar -xvf kernel-headers.tar.gz -C ./kernel_headers
       
-    - name: Move .config to Kernel Headers Root
-      run: mv ./kernel_headers/scripts/.config ./kernel_headers/
+    # 重命名并移动 config 文件到 kernel_headers 目录下作为 .config
+    - name: Rename and Move config to Kernel Headers Root
+      run: |
+        CONFIG_PATH="./kernel_headers/scripts/config"
+        if [ -f "$CONFIG_PATH" ]; then
+          mv "$CONFIG_PATH" ./kernel_headers/.config
+        else
+          echo "Could not find config at $CONFIG_PATH"
+          exit 1
+        fi
       
     - name: Clone RTL8812AU Driver Source Code
       run: git clone https://github.com/gnab/rtl8812au.git
