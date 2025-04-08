@@ -55,10 +55,12 @@ jobs:
 
     - name: Archive Kernel Headers
       run: |
+        pwd  # 打印当前工作目录以确认位置
         tar -czf kernel-headers.tar.gz -C ${GITHUB_WORKSPACE}/kernel_headers .
+        ls -la  # 列出当前目录内容以确认文件已创建
 
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v4.6.2
       with:
         name: kernel-headers
-        path: amlogic-s9xxx-armbian/kernel-headers.tar.gz
+        path: ./kernel-headers.tar.gz  # 确认使用正确的相对路径
