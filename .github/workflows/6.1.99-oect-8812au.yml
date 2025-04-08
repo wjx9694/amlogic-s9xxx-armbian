@@ -14,10 +14,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       
-    - name: Install Dependencies
+    - name: Install Dependencies and Cross-Compiler
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms
+        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms gcc-aarch64-linux-gnu
       
     - name: Download Kernel Headers
       run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/raw/main/compile-kernel/kernel-headers.tar.gz
@@ -39,7 +39,7 @@ jobs:
         
     - name: Compile RTL8812AU Driver
       working-directory: rtl8812au
-      run: make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers
+      run: make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers modules
       
     - name: Archive Compiled Driver Module
       run: |
