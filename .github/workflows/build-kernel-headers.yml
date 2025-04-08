@@ -38,9 +38,12 @@ jobs:
       working-directory: amlogic-s9xxx-armbian/kernel
       run: tar -xvf 6.1.99.tar.gz
       
+    - name: Create Target Directory for Headers
+      run: mkdir -p ./kernel_headers
+      
     - name: Extract Header Files
       working-directory: amlogic-s9xxx-armbian/kernel/6.1.99
-      run: tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C ./kernel_headers
+      run: tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C ../../kernel_headers
       
     - name: Verify Header Files Exist
       run: |
