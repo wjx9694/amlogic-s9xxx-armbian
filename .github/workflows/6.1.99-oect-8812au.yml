@@ -10,23 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
+    container:
+      dockerfile: ./Dockerfile
+
     steps:
     # Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v3
       
-    # Install Dependencies and Cross-Compiler (Arm GNU Toolchain)
-    - name: Install Arm GNU Toolchain
-      run: |
-        wget https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf.tar.xz
-        tar -xf arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf.tar.xz -C /opt
-        echo "export PATH=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf/bin:\$PATH" >> $GITHUB_PATH
-
-    - name: Install Additional Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms
-        
     # Download Kernel Headers
     - name: Download Kernel Headers
       run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/raw/main/compile-kernel/kernel-headers.tar.gz
