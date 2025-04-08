@@ -20,7 +20,7 @@ jobs:
         sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms
       
     - name: Download Kernel Headers
-      run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/blob/main/compile-kernel/kernel-headers.tar.gz
+      run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/raw/main/compile-kernel/kernel-headers.tar.gz
       
     - name: Create Target Directory for Headers
       run: mkdir -p kernel_headers
