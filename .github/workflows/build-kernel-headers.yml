@@ -40,12 +40,11 @@ jobs:
       
     - name: Extract Header Files
       working-directory: amlogic-s9xxx-armbian/kernel/6.1.99
-      run: |
-        tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C /usr/local
+      run: tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C ./kernel_headers
       
     - name: Verify Header Files Exist
       run: |
-        if [ -d "/usr/local/include" ] && [ -d "/usr/local/arch" ] && [ -f "/usr/local/Module.symvers" ]; then 
+        if [ -d "./kernel_headers/include" ] && [ -d "./kernel_headers/arch" ] && [ -f "./kernel_headers/Module.symvers" ]; then 
           echo "Headers found"
         else 
           echo "Headers not found"
@@ -53,7 +52,7 @@ jobs:
 
     - name: Archive Kernel Headers
       run: |
-        tar -czf kernel-headers.tar.gz -C /usr/local .
+        tar -czf kernel-headers.tar.gz -C ./kernel_headers .
 
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v4.6.2
