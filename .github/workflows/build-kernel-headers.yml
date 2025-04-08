@@ -38,16 +38,16 @@ jobs:
       working-directory: amlogic-s9xxx-armbian/kernel
       run: tar -xvf 6.1.99.tar.gz
       
-    - name: Create Target Directory for Headers
+    - name: Create Target Directory for Headers in Root of Project
       run: mkdir -p ./kernel_headers
       
     - name: Extract Header Files
       working-directory: amlogic-s9xxx-armbian/kernel/6.1.99
-      run: tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C ../../kernel_headers
+      run: tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C ${GITHUB_WORKSPACE}/kernel_headers
       
     - name: Verify Header Files Exist
       run: |
-        if [ -d "./kernel_headers/include" ] && [ -d "./kernel_headers/arch" ] && [ -f "./kernel_headers/Module.symvers" ]; then 
+        if [ -d "${GITHUB_WORKSPACE}/kernel_headers/include" ] && [ -d "${GITHUB_WORKSPACE}/kernel_headers/arch" ] && [ -f "${GITHUB_WORKSPACE}/kernel_headers/Module.symvers" ]; then 
           echo "Headers found"
         else 
           echo "Headers not found"
@@ -55,7 +55,7 @@ jobs:
 
     - name: Archive Kernel Headers
       run: |
-        tar -czf kernel-headers.tar.gz -C ./kernel_headers .
+        tar -czf kernel-headers.tar.gz -C ${GITHUB_WORKSPACE}/kernel_headers .
 
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v4.6.2
