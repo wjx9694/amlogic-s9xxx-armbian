@@ -34,12 +34,10 @@ jobs:
     - name: Copy Configuration File and Compile Kernel Headers
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 根据实际情况调整路径
-        # 假设内核源码位于kernel目录下，如果没有可以直接克隆或下载
+        # 确保kernel目录存在并解压内核源码（如果需要）
         if [ ! -d "kernel" ]; then
           mkdir kernel
-          # 如果内核源码是以压缩包形式提供的，请解压到kernel目录
-          tar -xvf release/kernel-6.1.tar.xz -C kernel  # 根据实际存放位置调整
+          tar -xvf release/kernel-6.1.tar.xz -C kernel  # 根据实际情况调整路径
         fi
         
         # 复制配置文件到内核源码目录
@@ -53,6 +51,8 @@ jobs:
     - name: Archive Kernel Headers
       run: |
         tar -czf kernel-headers.tar.gz -C /usr/local/include .
+      
+    - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v2
       with:
         name: kernel-headers
