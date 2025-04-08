@@ -23,14 +23,17 @@ jobs:
       run: |
         git clone https://github.com/ophub/amlogic-s9xxx-armbian.git
         
-    - name: Prepare and Compile Specific Kernel Source
+    - name: Switch to Specific Tag and Prepare Kernel Source
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 根据实际情况选择正确的分支或标签
-        git checkout your-target-branch-or-tag
-        cd kernel
-        # 假设kernel目录下有需要的内核源码
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+        # 切换到包含所需内核版本的标签
+        git fetch --tags
+        git checkout Armbian_noble_save_2025.04  # 替换成实际找到的标签名
+        cd compile-kernel/tools/config
+        # 假设配置文件位于compile-kernel/tools/config下
+        cp config-6.1 ../../../kernel/.config
+        cd ../../../kernel
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
         sudo make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_HDR_PATH=/usr/local headers_install
