@@ -59,9 +59,9 @@ jobs:
         fi
       
     - name: Compile RTL8812AU Driver
-  working-directory: rtl8812au
-  run: |
-    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers CFLAGS_EXTRA="-DBYTE_ORDER=LITTLE_ENDIAN" modules
+      working-directory: rtl8812au
+      run: |
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers CFLAGS_EXTRA="-DBYTE_ORDER=LITTLE_ENDIAN" modules
       
     - name: Archive Compiled Driver Module
       run: |
