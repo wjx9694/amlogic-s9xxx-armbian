@@ -28,17 +28,11 @@ jobs:
     - name: Extract Kernel Headers
       run: tar -xvf kernel-headers.tar.gz -C ./kernel_headers
       
-    # 重命名并移动 config 文件到 kernel_headers 目录下作为 .config
-    - name: Rename and Move config to Kernel Headers Root
+    # 下载正确的 .config 文件并放置在 kernel_headers 目录下
+    - name: Download Correct .config File
       run: |
-        CONFIG_PATH="./kernel_headers/scripts/config"
-        if [ -f "$CONFIG_PATH" ]; then
-          mv "$CONFIG_PATH" ./kernel_headers/.config
-        else
-          echo "Could not find config at $CONFIG_PATH"
-          exit 1
-        fi
-      
+        wget https://raw.githubusercontent.com/ophub/kernel/main/kernel-config/release/rk35xx/config-6.1 -O ./kernel_headers/.config
+        
     - name: Clone RTL8812AU Driver Source Code
       run: git clone https://github.com/gnab/rtl8812au.git
       
@@ -48,20 +42,11 @@ jobs:
         sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/' Makefile
         sed -i 's/CONFIG_PLATFORM_ARM64_RPI = n/CONFIG_PLATFORM_ARM64_RPI = y/' Makefile
         
-    - name: Check Byte Order from .config
-      run: |
-        if grep -q "CONFIG_CPU_BIG_ENDIAN=y" ./kernel_headers/.config; then
-          echo "Big Endian"
-          export BYTE_ORDER_MACRO="-DBYTE_ORDER=BIG_ENDIAN"
-        else
-          echo "Little Endian"
-          export BYTE_ORDER_MACRO="-DBYTE_ORDER=LITTLE_ENDIAN"
-        fi
-      
     - name: Compile RTL8812AU Driver
       working-directory: rtl8812au
       run: |
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers CFLAGS_EXTRA="-DBYTE_ORDER=LITTLE_ENDIAN" modules
+        export EXTRA_CFLAGS="-DBYTE_ORDER=LITTLE_ENDIAN"
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers modules EXTRA_CFLAGS="$EXTRA_CFLAGS"
       
     - name: Archive Compiled Driver Module
       run: |
