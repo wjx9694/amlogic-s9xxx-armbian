@@ -55,6 +55,7 @@ jobs:
         cp compile-kernel/tools/config/config-6.1 kernel/.config
         cd kernel
         pwd  # 再次打印当前工作目录，确认是否正确进入kernel目录
+        ls -la  # 列出kernel目录下的所有文件以确认Makefile存在
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
