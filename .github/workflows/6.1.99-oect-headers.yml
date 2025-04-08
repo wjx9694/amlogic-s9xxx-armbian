@@ -1,0 +1,54 @@
+name: Build RTL8812AU Driver for Armbian AArch64
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms
+      
+    - name: Download Kernel Headers
+      run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/releases/download/untagged-148394d48f69c464e6fa/kernel-headers.tar.gz
+      
+    - name: Create Target Directory for Headers
+      run: mkdir -p kernel_headers
+      
+    - name: Extract Kernel Headers
+      run: tar -xvf kernel-headers.tar.gz -C ./kernel_headers
+      
+    - name: Clone RTL8812AU Driver Source Code
+      run: git clone https://github.com/gnab/rtl8812au.git
+      
+    - name: Prepare Build Environment
+      working-directory: rtl8812au
+      run: |
+        sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/' Makefile
+        sed -i 's/CONFIG_PLATFORM_ARM64_RPI = n/CONFIG_PLATFORM_ARM64_RPI = y/' Makefile
+        
+    - name: Compile RTL8812AU Driver
+      working-directory: rtl8812au
+      run: make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers
+      
+    - name: Archive Compiled Driver Module
+      run: |
+        mkdir -p compiled_driver
+        find . -name "*.ko" -exec cp {} compiled_driver/ \;
+        tar -czf rtl8812au-driver.tar.gz -C compiled_driver .
+        
+    - name: Upload Compiled Driver Artifact
+      uses: actions/upload-artifact@v4.6.2
+      with:
+        name: rtl8812au-driver
+        path: rtl8812au-driver.tar.gz
