@@ -26,32 +26,42 @@ jobs:
     - name: Switch to Specific Tag and Prepare Kernel Source
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 获取所有标签
         git fetch --tags
-        # 切换到包含所需内核版本的标签
         git checkout Armbian_noble_save_2025.04  # 使用正确的标签名
         
+    - name: List Files Before Downloading Kernel Source
+      run: ls -la amlogic-s9xxx-armbian/
+      
     - name: Download Kernel Source
       run: |
-        mkdir -p kernel
-        wget https://github.com/ophub/kernel/releases/download/kernel_rk35xx/6.1.99.tar.gz -P kernel/
+        mkdir -p amlogic-s9xxx-armbian/kernel
+        wget https://github.com/ophub/kernel/releases/download/kernel_rk35xx/6.1.99.tar.gz -P amlogic-s9xxx-armbian/kernel/
         
+    - name: Check if kernel source downloaded
+      run: if [ -f "amlogic-s9xxx-armbian/kernel/6.1.99.tar.gz" ]; then echo "Kernel source found"; else echo "Kernel source not found"; fi
+      
     - name: Extract Kernel Source
       working-directory: amlogic-s9xxx-armbian/kernel
       run: tar -xvf 6.1.99.tar.gz
       
+    - name: List extracted files
+      working-directory: amlogic-s9xxx-armbian/kernel
+      run: ls -la
+      
     - name: Copy Configuration File and Compile Kernel Headers
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 复制配置文件到内核源码目录
+        pwd  # 打印当前工作目录
         cp compile-kernel/tools/config/config-6.1 kernel/.config
         cd kernel
+        pwd  # 再次打印当前工作目录，确认是否正确进入kernel目录
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
         sudo make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_HDR_PATH=/usr/local headers_install
         
     - name: Archive Kernel Headers
+      working-directory: .
       run: |
         tar -czf kernel-headers.tar.gz -C /usr/local/include .
 
@@ -62,4 +72,4 @@ jobs:
       uses: actions/upload-artifact@v4.6.2
       with:
         name: kernel-headers
-        path: amlogic-s9xxx-armbian/kernel-headers.tar.gz  # 确认路径是否正确
+        path: amlogic-s9xxx-armbian/kernel-headers.tar.gz
