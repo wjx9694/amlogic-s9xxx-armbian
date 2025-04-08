@@ -11,49 +11,66 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    # Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v3
       
-    - name: Install Dependencies and Cross-Compiler
+    # Install Dependencies and Cross-Compiler (Arm GNU Toolchain)
+    - name: Install Arm GNU Toolchain
+      run: |
+        wget https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf.tar.xz
+        tar -xf arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf.tar.xz -C /opt
+        echo "export PATH=/opt/arm-gnu-toolchain-14.2.rel1-x86_64-aarch64-none-elf/bin:\$PATH" >> $GITHUB_PATH
+
+    - name: Install Additional Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms gcc-aarch64-linux-gnu
-      
+        sudo apt-get install -y build-essential bc bison flex libssl-dev libelf-dev wget git dkms
+        
+    # Download Kernel Headers
     - name: Download Kernel Headers
       run: wget https://github.com/wjx9694/amlogic-s9xxx-armbian/raw/main/compile-kernel/kernel-headers.tar.gz
       
+    # Create Target Directory for Headers
     - name: Create Target Directory for Headers
       run: mkdir -p kernel_headers
       
+    # Extract Kernel Headers
     - name: Extract Kernel Headers
       run: tar -xvf kernel-headers.tar.gz -C ./kernel_headers
       
-    # 下载正确的 .config 文件并放置在 kernel_headers 目录下
+    # Download Correct .config File
     - name: Download Correct .config File
       run: |
         wget https://raw.githubusercontent.com/ophub/kernel/main/kernel-config/release/rk35xx/config-6.1 -O ./kernel_headers/.config
         
+    # Clone RTL8812AU Driver Source Code
     - name: Clone RTL8812AU Driver Source Code
       run: git clone https://github.com/gnab/rtl8812au.git
       
+    # Prepare Build Environment
     - name: Prepare Build Environment
       working-directory: rtl8812au
       run: |
         sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/' Makefile
         sed -i 's/CONFIG_PLATFORM_ARM64_RPI = n/CONFIG_PLATFORM_ARM64_RPI = y/' Makefile
         
+    # Compile RTL8812AU Driver
     - name: Compile RTL8812AU Driver
       working-directory: rtl8812au
       run: |
+        export CROSS_COMPILE=aarch64-none-elf-
         export EXTRA_CFLAGS="-DBYTE_ORDER=LITTLE_ENDIAN -I${GITHUB_WORKSPACE}/rtl8812au/include"
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -C ${GITHUB_WORKSPACE}/kernel_headers M=${GITHUB_WORKSPACE}/rtl8812au modules EXTRA_CFLAGS="$EXTRA_CFLAGS"
+        make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} -C ${GITHUB_WORKSPACE}/kernel_headers M=${GITHUB_WORKSPACE}/rtl8812au modules EXTRA_CFLAGS="$EXTRA_CFLAGS"
       
+    # Archive Compiled Driver Module
     - name: Archive Compiled Driver Module
       run: |
         mkdir -p compiled_driver
         find . -name "*.ko" -exec cp {} compiled_driver/ \;
         tar -czf rtl8812au-driver.tar.gz -C compiled_driver .
         
+    # Upload Compiled Driver Artifact
     - name: Upload Compiled Driver Artifact
       uses: actions/upload-artifact@v4.6.2
       with:
