@@ -29,47 +29,31 @@ jobs:
         git fetch --tags
         git checkout Armbian_noble_save_2025.04  # 使用正确的标签名
         
-    - name: List Files Before Downloading Kernel Source
-      run: ls -la amlogic-s9xxx-armbian/
-      
     - name: Download Kernel Source
       run: |
         mkdir -p amlogic-s9xxx-armbian/kernel
         wget https://github.com/ophub/kernel/releases/download/kernel_rk35xx/6.1.99.tar.gz -P amlogic-s9xxx-armbian/kernel/
         
-    - name: Check if kernel source downloaded
-      run: if [ -f "amlogic-s9xxx-armbian/kernel/6.1.99.tar.gz" ]; then echo "Kernel source found"; else echo "Kernel source not found"; fi
-      
     - name: Extract Kernel Source
       working-directory: amlogic-s9xxx-armbian/kernel
       run: tar -xvf 6.1.99.tar.gz
       
-    - name: List extracted files
-      working-directory: amlogic-s9xxx-armbian/kernel
-      run: ls -la
+    - name: Extract Header Files
+      working-directory: amlogic-s9xxx-armbian/kernel/6.1.99
+      run: |
+        tar -xvf header-6.1.99-rk35xx-ophub.tar.gz -C /usr/local
       
-    - name: Copy Configuration File and Compile Kernel Headers
-      working-directory: amlogic-s9xxx-armbian
+    - name: Verify Header Files Exist
       run: |
-        pwd  # 打印当前工作目录
-        cp compile-kernel/tools/config/config-6.1 kernel/.config
-        cd kernel
-        pwd  # 再次打印当前工作目录，确认是否正确进入kernel目录
-        ls -la  # 列出kernel目录下的所有文件以确认Makefile存在
-        cd 6.1.99  # 进入实际包含内核源码和Makefile的目录
-        pwd  # 确认进入了正确的内核源码目录
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
-        sudo make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_HDR_PATH=/usr/local headers_install
-        
-    - name: Archive Kernel Headers
-      working-directory: .
-      run: |
-        tar -czf kernel-headers.tar.gz -C /usr/local/include .
+        if [ -d "/usr/local/include" ] && [ -d "/usr/local/arch" ] && [ -f "/usr/local/Module.symvers" ]; then 
+          echo "Headers found"
+        else 
+          echo "Headers not found"
+        fi
 
-    - name: Verify artifact exists
-      run: if [ -f "amlogic-s9xxx-armbian/kernel-headers.tar.gz" ]; then echo "Artifact found"; else echo "Artifact not found"; fi
+    - name: Archive Kernel Headers
+      run: |
+        tar -czf kernel-headers.tar.gz -C /usr/local .
 
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v4.6.2
