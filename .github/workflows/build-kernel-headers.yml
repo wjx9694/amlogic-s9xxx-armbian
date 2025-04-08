@@ -51,7 +51,7 @@ jobs:
     - name: Archive Kernel Headers
       run: |
         tar -czf kernel-headers.tar.gz -C /usr/local/include .
-      
+
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v2
       with:
