@@ -31,15 +31,18 @@ jobs:
         # 切换到包含所需内核版本的标签
         git checkout Armbian_noble_save_2025.04  # 使用正确的标签名
         
+    - name: Download Kernel Source
+      run: |
+        mkdir -p kernel
+        wget https://github.com/ophub/kernel/releases/download/kernel_rk35xx/6.1.99.tar.gz -P kernel/
+        
+    - name: Extract Kernel Source
+      working-directory: amlogic-s9xxx-armbian/kernel
+      run: tar -xvf 6.1.99.tar.gz
+      
     - name: Copy Configuration File and Compile Kernel Headers
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 确保kernel目录存在并解压内核源码（如果需要）
-        if [ ! -d "kernel" ]; then
-          mkdir kernel
-          tar -xvf release/kernel-6.1.tar.xz -C kernel  # 根据实际情况调整路径
-        fi
-        
         # 复制配置文件到内核源码目录
         cp compile-kernel/tools/config/config-6.1 kernel/.config
         cd kernel
@@ -52,8 +55,11 @@ jobs:
       run: |
         tar -czf kernel-headers.tar.gz -C /usr/local/include .
 
+    - name: Verify artifact exists
+      run: if [ -f "amlogic-s9xxx-armbian/kernel-headers.tar.gz" ]; then echo "Artifact found"; else echo "Artifact not found"; fi
+
     - name: Upload Kernel Headers Artifact
       uses: actions/upload-artifact@v4.6.2
       with:
         name: kernel-headers
-        path: kernel-headers.tar.gz
+        path: amlogic-s9xxx-armbian/kernel-headers.tar.gz  # 确认路径是否正确
