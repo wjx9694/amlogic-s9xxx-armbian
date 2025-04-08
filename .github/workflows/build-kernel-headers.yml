@@ -26,13 +26,25 @@ jobs:
     - name: Switch to Specific Tag and Prepare Kernel Source
       working-directory: amlogic-s9xxx-armbian
       run: |
-        # 切换到包含所需内核版本的标签
+        # 获取所有标签
         git fetch --tags
-        git checkout Armbian_noble_save_2025.04  # 替换成实际找到的标签名
-        cd compile-kernel/tools/config
-        # 假设配置文件位于compile-kernel/tools/config下
-        cp config-6.1 ../../../kernel/.config
-        cd ../../../kernel
+        # 切换到包含所需内核版本的标签
+        git checkout Armbian_noble_save_2025.04  # 使用正确的标签名
+        
+    - name: Copy Configuration File and Compile Kernel Headers
+      working-directory: amlogic-s9xxx-armbian
+      run: |
+        # 根据实际情况调整路径
+        # 假设内核源码位于kernel目录下，如果没有可以直接克隆或下载
+        if [ ! -d "kernel" ]; then
+          mkdir kernel
+          # 如果内核源码是以压缩包形式提供的，请解压到kernel目录
+          tar -xvf release/kernel-6.1.tar.xz -C kernel  # 根据实际存放位置调整
+        fi
+        
+        # 复制配置文件到内核源码目录
+        cp compile-kernel/tools/config/config-6.1 kernel/.config
+        cd kernel
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
