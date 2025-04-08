@@ -59,12 +59,9 @@ jobs:
         fi
       
     - name: Compile RTL8812AU Driver
-      working-directory: rtl8812au
-      env:
-        BYTE_ORDER_MACRO: ${{ steps.check-byte-order.outputs.byte_order_macro }}
-      run: |
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers modules \
-        CFLAGS_EXTRA="${BYTE_ORDER_MACRO}"
+  working-directory: rtl8812au
+  run: |
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers CFLAGS_EXTRA="-DBYTE_ORDER=LITTLE_ENDIAN" modules
       
     - name: Archive Compiled Driver Module
       run: |
