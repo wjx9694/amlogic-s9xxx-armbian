@@ -56,6 +56,8 @@ jobs:
         cd kernel
         pwd  # 再次打印当前工作目录，确认是否正确进入kernel目录
         ls -la  # 列出kernel目录下的所有文件以确认Makefile存在
+        cd 6.1.99  # 进入实际包含内核源码和Makefile的目录
+        pwd  # 确认进入了正确的内核源码目录
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- prepare
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- headers_check
