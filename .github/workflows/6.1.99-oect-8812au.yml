@@ -28,6 +28,9 @@ jobs:
     - name: Extract Kernel Headers
       run: tar -xvf kernel-headers.tar.gz -C ./kernel_headers
       
+    - name: Move .config to Kernel Headers Root
+      run: mv ./kernel_headers/scripts/.config ./kernel_headers/
+      
     - name: Clone RTL8812AU Driver Source Code
       run: git clone https://github.com/gnab/rtl8812au.git
       
@@ -37,11 +40,23 @@ jobs:
         sed -i 's/CONFIG_PLATFORM_I386_PC = y/CONFIG_PLATFORM_I386_PC = n/' Makefile
         sed -i 's/CONFIG_PLATFORM_ARM64_RPI = n/CONFIG_PLATFORM_ARM64_RPI = y/' Makefile
         
+    - name: Check Byte Order from .config
+      run: |
+        if grep -q "CONFIG_CPU_BIG_ENDIAN=y" ./kernel_headers/.config; then
+          echo "Big Endian"
+          export BYTE_ORDER_MACRO="-DBYTE_ORDER=BIG_ENDIAN"
+        else
+          echo "Little Endian"
+          export BYTE_ORDER_MACRO="-DBYTE_ORDER=LITTLE_ENDIAN"
+        fi
+      
     - name: Compile RTL8812AU Driver
       working-directory: rtl8812au
+      env:
+        BYTE_ORDER_MACRO: ${{ steps.check-byte-order.outputs.byte_order_macro }}
       run: |
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- KSRC=${GITHUB_WORKSPACE}/kernel_headers modules \
-        CFLAGS_EXTRA="-DBYTE_ORDER=LITTLE_ENDIAN"
+        CFLAGS_EXTRA="${BYTE_ORDER_MACRO}"
       
     - name: Archive Compiled Driver Module
       run: |
